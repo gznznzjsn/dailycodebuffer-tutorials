@@ -7,15 +7,16 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Table(
         name = "tbl_student",
-        uniqueConstraints = @UniqueConstraint(
+        uniqueConstraints = {@UniqueConstraint(
                 name = "emailid_unique",
                 columnNames = "email_address"
-        )
+        )}
 )
 public class Student {
 
@@ -39,8 +40,6 @@ public class Student {
             nullable = false
     )
     private String emailId;
-
-    private String guardianName;
-    private String guardianEmail;
-    private String guardianMobile;
+    @Embedded
+    private Guardian guardian;
 }
