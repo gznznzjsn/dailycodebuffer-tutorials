@@ -18,9 +18,16 @@ public class CourseMaterial {
     private String url;
 
     @OneToOne(
-            cascade = CascadeType.ALL
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY,
+            optional = false
     )
     @JoinColumn(name = "course_id", referencedColumnName = "courseId")
+    @ToString.Exclude
     private Course course;
+
+    public void setCourse(Course course) {
+        this.course = course;
+    }
 
 }
