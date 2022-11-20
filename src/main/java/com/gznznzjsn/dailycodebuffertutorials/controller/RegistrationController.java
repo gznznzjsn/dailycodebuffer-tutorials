@@ -3,6 +3,7 @@ package com.gznznzjsn.dailycodebuffertutorials.controller;
 import com.gznznzjsn.dailycodebuffertutorials.entity.User;
 import com.gznznzjsn.dailycodebuffertutorials.entity.VerificationToken;
 import com.gznznzjsn.dailycodebuffertutorials.event.RegistrationCompleteEvent;
+import com.gznznzjsn.dailycodebuffertutorials.model.PasswordModel;
 import com.gznznzjsn.dailycodebuffertutorials.model.UserModel;
 import com.gznznzjsn.dailycodebuffertutorials.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @Slf4j
@@ -55,8 +58,42 @@ public class RegistrationController {
         VerificationToken verificationToken = userService.generateNewVerificationToken(oldToken);
         User user = verificationToken.getUser();
         resendVerificationTokenMail(user,applicationUrl(request), verificationToken);
-        return "Verification Link sent";
+        return "Verification Link is sent";
+    }
 
+    @PostMapping("/resetPassword")
+    public String resetPassword(@RequestBody PasswordModel passwordModel,HttpServletRequest request){
+        User user = userService.findUserByEmail(passwordModel.getEmail());
+       String url = "";
+        if(user!=null){
+            String token = UUID.randomUUID().toString();
+            userService.createPasswordResetTokenForUser(user,token);
+             passwordResetTokenMail(user,applicationUrl(request),token);
+        }
+        return "Reset password link is sent";
+    }
+
+    private void passwordResetTokenMail(User user, String applicationUrl, String token) {
+        //send mail to user
+        String url = applicationUrl + "/savePassword?token=" + token;
+
+        //sendVerificationEmail(), know it  is just mocking
+        log.info("click the link to reset your password: {}",url);
+    }
+
+    @PostMapping("/savePassword")
+    public String savePassword(@RequestParam("token")String token,@RequestBody PasswordModel passwordModel){
+        String result = userService.validatePasswordResetToken(token);
+        if(!result.equalsIgnoreCase("valid")){
+            return "Invalid token";
+        }
+        Optional<User> user = userService.getUserByPasswordResetToken(token);
+        if(user.isPresent()){
+            userService.changePassword(user.get(),passwordModel.getNewPassword());
+            return  "Password Reset Successfully";
+        }else{
+            return "Invalid token";
+        }
     }
 
     private void resendVerificationTokenMail(User user, String applicationUrl, VerificationToken verificationToken) {
