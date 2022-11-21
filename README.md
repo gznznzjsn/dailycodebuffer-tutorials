@@ -1,2 +1,2 @@
 # dailycodebuffer-tutorials
-## check out tutorials in different branches of this repo 
+## Check out completed tutorials in different branches of this repo 
